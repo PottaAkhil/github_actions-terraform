@@ -3,7 +3,7 @@ resource "aws_security_group" "app-sg" {
     dynamic "ingress" {
         for_each = var.rules
         content {
-         protocol = ingress.value["protocol"]
+         protocol = ingress.value["proto"]
           from_port = ingress.value["port"]
           to_port = ingress.value["port"]
           cidr_blocks = ingress.value["cidr_blocks"]
@@ -20,3 +20,4 @@ resource "aws_security_group" "app-sg" {
     }
 
 }
+
