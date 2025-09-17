@@ -6,47 +6,20 @@ on:
       - main
     paths:
       - 'vpc/**'
-      - 'sg-ec2/**'
+      - 'sg/**'
+  pull_request:
+    paths:
+      - 'vpc/**'
+      - 'sg/**'
 
 permissions:
-  id-token: write   # Required for OIDC
-  contents: read    # Required for checkout
+  id-token: write
+  contents: read
 
 jobs:
   vpc:
-    runs-on: ubuntu-latest
     if: contains(join(github.event.commits.*.modified), 'vpc/')
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
-          aws-region: us-east-1   # change region if needed
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.9.8
-
-      - name: Terraform Init
-        working-directory: ./vpc
-        run: terraform init
-
-      - name: Terraform Plan
-        working-directory: ./vpc
-        run: terraform plan -input=false -var-file=dev.tfvars
-
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        working-directory: ./vpc
-        run: terraform apply -auto-approve -input=false -var-file=dev.tfvars
-
-  sg-ec2:
     runs-on: ubuntu-latest
-    if: contains(join(github.event.commits.*.modified), 'sg-ec2/')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -55,7 +28,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
-          aws-region: us-east-1   # change region if needed
+          aws-region: us-east-1   # adjust to your region
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -63,14 +36,45 @@ jobs:
           terraform_version: 1.9.8
 
       - name: Terraform Init
-        working-directory: ./sg-ec2
+        working-directory: ./vpc
         run: terraform init
 
       - name: Terraform Plan
-        working-directory: ./sg-ec2
-        run: terraform plan -input=false -var-file=dev.tfvars
+        working-directory: ./vpc
+        run: terraform plan -input=false -var-file=terraform.tfvars
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
-        working-directory: ./sg-ec2
-        run: terraform apply -auto-approve -input=false -var-file=dev.tfvars
+        working-directory: ./vpc
+        run: terraform apply -input=false -var-file=terraform.tfvars -auto-approve
+
+  sg:
+    if: contains(join(github.event.commits.*.modified), 'sg/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - name: Terraform Init
+        working-directory: ./sg
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: ./sg
+        run: terraform plan -input=false -var-file=terraform.tfvars
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        working-directory: ./sg
+        run: terraform apply -input=false -var-file=terraform.tfvars -auto-approve
