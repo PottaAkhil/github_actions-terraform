@@ -100,7 +100,8 @@ jobs:
       - name: Select Action
         id: action
         run: |
-          ACTION="${{ github.event.inputs.action }}"
+          # Use workflow input if available, otherwise fallback to environment secret
+          ACTION="${{ github.event.inputs.action || secrets.TERRAFORM_ACTION }}"
           echo "Selected action: $ACTION"
           echo "action=$ACTION" >> $GITHUB_OUTPUT
 
@@ -194,7 +195,7 @@ jobs:
       - name: Select Action
         id: action
         run: |
-          ACTION="${{ github.event.inputs.action }}"
+          ACTION="${{ github.event.inputs.action || secrets.TERRAFORM_ACTION }}"
           echo "Selected action: $ACTION"
           echo "action=$ACTION" >> $GITHUB_OUTPUT
 
@@ -288,7 +289,7 @@ jobs:
       - name: Select Action
         id: action
         run: |
-          ACTION="${{ github.event.inputs.action }}"
+          ACTION="${{ github.event.inputs.action || secrets.TERRAFORM_ACTION }}"
           echo "Selected action: $ACTION"
           echo "action=$ACTION" >> $GITHUB_OUTPUT
 
