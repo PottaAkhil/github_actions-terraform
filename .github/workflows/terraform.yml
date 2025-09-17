@@ -4,13 +4,7 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'vpc/**'
-      - 'sg/**'
   pull_request:
-    paths:
-      - 'vpc/**'
-      - 'sg/**'
 
 permissions:
   id-token: write
@@ -18,8 +12,8 @@ permissions:
 
 jobs:
   vpc:
-    if: contains(join(github.event.commits.*.modified), 'vpc/')
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'vpc') || github.event.pull_request }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,7 +22,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
-          aws-region: us-east-1   # adjust to your region
+          aws-region: us-east-1
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -49,8 +43,8 @@ jobs:
         run: terraform apply -input=false -var-file=terraform.tfvars -auto-approve
 
   sg:
-    if: contains(join(github.event.commits.*.modified), 'sg/')
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'sg') || github.event.pull_request }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
