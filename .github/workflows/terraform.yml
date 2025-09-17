@@ -36,11 +36,11 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      # Step 5: Terraform Plan
+      # Step 5: Terraform Plan with dev.tfvars
       - name: Terraform Plan
-        run: terraform plan -input=false
+        run: terraform plan -input=false -var-file=dev.tfvars
 
-      # Step 6: Terraform Apply (only on main branch)
+      # Step 6: Terraform Apply with dev.tfvars (only on main branch)
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve -input=false
+        run: terraform apply -auto-approve -input=false -var-file=dev.tfvars
