@@ -89,7 +89,42 @@ jobs:
         if: ${{ steps.changes.outputs.sg == 'true' }}
         working-directory: ./sg
         run: terraform plan -input=false -var-file=terraform.tfvars
+  ec2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
+      - name: Detect changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            ec2:
+              - 'ec2/**'
+
+      - name: Configure AWS credentials
+        if: ${{ steps.changes.outputs.ec2 == 'true' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        if: ${{ steps.changes.outputs.ec2 == 'true' }}
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - name: Terraform Init
+        if: ${{ steps.changes.outputs.ec2 == 'true' }}
+        working-directory: ./ec2
+        run: terraform init
+
+      - name: Terraform Plan
+        if: ${{ steps.changes.outputs.ec2 == 'true' }}
+        working-directory: ./ec2
+        run: terraform plan -input=false -var-file=terraform.tfvars
       - name: Terraform Apply
         if: ${{ github.ref == 'refs/heads/main' && steps.changes.outputs.sg == 'true' }}
         working-directory: ./sg
