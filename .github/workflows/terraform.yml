@@ -1,10 +1,16 @@
 name: Terraform Deploy
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Select Terraform action'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - destroy
 
 permissions:
   id-token: write
@@ -48,10 +54,22 @@ jobs:
         working-directory: ./vpc
         run: terraform plan -input=false -var-file=terraform.tfvars
 
-      - name: Terraform Apply
-        if: ${{ github.ref == 'refs/heads/main' && steps.changes.outputs.vpc == 'true' }}
+      - name: Await Manual Approval
+        if: ${{ steps.changes.outputs.vpc == 'true' }}
+        environment: terraform-approval
+        run: echo "Manual approval granted to proceed with selected action"
+
+      - name: Terraform Apply or Destroy
+        if: ${{ steps.changes.outputs.vpc == 'true' }}
         working-directory: ./vpc
-        run: terraform apply -input=false -var-file=terraform.tfvars -auto-approve
+        run: |
+          if [ "${{ github.event.inputs.action }}" == "apply" ]; then
+            terraform apply -input=false -var-file=terraform.tfvars
+          elif [ "${{ github.event.inputs.action }}" == "destroy" ]; then
+            terraform destroy -input=false -var-file=terraform.tfvars
+          else
+            echo "Invalid action selected"; exit 1
+          fi
 
   sg:
     runs-on: ubuntu-latest
@@ -89,6 +107,24 @@ jobs:
         if: ${{ steps.changes.outputs.sg == 'true' }}
         working-directory: ./sg
         run: terraform plan -input=false -var-file=terraform.tfvars
+
+      - name: Await Manual Approval
+        if: ${{ steps.changes.outputs.sg == 'true' }}
+        environment: terraform-approval
+        run: echo "Manual approval granted to proceed with selected action"
+
+      - name: Terraform Apply or Destroy
+        if: ${{ steps.changes.outputs.sg == 'true' }}
+        working-directory: ./sg
+        run: |
+          if [ "${{ github.event.inputs.action }}" == "apply" ]; then
+            terraform apply -input=false -var-file=terraform.tfvars
+          elif [ "${{ github.event.inputs.action }}" == "destroy" ]; then
+            terraform destroy -input=false -var-file=terraform.tfvars
+          else
+            echo "Invalid action selected"; exit 1
+          fi
+
   ec2:
     runs-on: ubuntu-latest
     steps:
@@ -125,7 +161,20 @@ jobs:
         if: ${{ steps.changes.outputs.ec2 == 'true' }}
         working-directory: ./ec2
         run: terraform plan -input=false -var-file=terraform.tfvars
-      - name: Terraform Apply
-        if: ${{ github.ref == 'refs/heads/main' && steps.changes.outputs.sg == 'true' }}
-        working-directory: ./sg
-        run: terraform apply -input=false -var-file=terraform.tfvars -auto-approve
+
+      - name: Await Manual Approval
+        if: ${{ steps.changes.outputs.ec2 == 'true' }}
+        environment: terraform-approval
+        run: echo "Manual approval granted to proceed with selected action"
+
+      - name: Terraform Apply or Destroy
+        if: ${{ steps.changes.outputs.ec2 == 'true' }}
+        working-directory: ./ec2
+        run: |
+          if [ "${{ github.event.inputs.action }}" == "apply" ]; then
+            terraform apply -input=false -var-file=terraform.tfvars
+          elif [ "${{ github.event.inputs.action }}" == "destroy" ]; then
+            terraform destroy -input=false -var-file=terraform.tfvars
+          else
+            echo "Invalid action selected"; exit 1
+          fi
