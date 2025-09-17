@@ -1,6 +1,6 @@
 
 resource "aws_iam_instance_profile" "profile" {
-  name = "kube-test"
+  name = "sessionmanager-ec2"
   role = aws_iam_role.session-role.name
 }
 
@@ -25,4 +25,5 @@ resource "aws_iam_role" "session-role" {
 resource "aws_iam_role_policy_attachment" "AmazonSSMManagedInstanceCore" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   role       = aws_iam_role.session-role.name
+
 }
