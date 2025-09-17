@@ -1,46 +1,74 @@
-name: Terraform Deploy to AWS
+name: Terraform Deploy
 
 on:
   push:
     branches:
-      - main   # Trigger on push to main branch
-  pull_request:
+      - main
+    paths:
+      - 'vpc/**'
+      - 'sg-ec2/**'
 
 permissions:
-  id-token: write   # Required for OIDC authentication
-  contents: read    # Required for checkout
+  id-token: write
+  contents: read
 
 jobs:
-  terraform:
+  vpc:
+    if: contains(github.event.head_commit.message, 'vpc') || github.event_name == 'push' && contains(join(github.event.commits.*.modified), 'vpc/')
     runs-on: ubuntu-latest
-
     steps:
-      # Step 1: Checkout repo
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # Step 2: Configure AWS credentials using OIDC + Secret
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
-          aws-region: us-east-1   # change to your AWS region
+          aws-region: us-east-1
 
-      # Step 3: Setup Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.8   # or your preferred version
+          terraform_version: 1.9.8
 
-      # Step 4: Terraform Init
       - name: Terraform Init
+        working-directory: vpc
         run: terraform init
 
-      # Step 5: Terraform Plan with dev.tfvars
       - name: Terraform Plan
-        run: terraform plan -input=false -var-file=dev.tfvars
+        working-directory: vpc
+        run: terraform plan -var-file=dev.tfvars -input=false
 
-      # Step 6: Terraform Apply with dev.tfvars (only on main branch)
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve -input=false -var-file=dev.tfvars
+        working-directory: vpc
+        run: terraform apply -var-file=dev.tfvars -auto-approve -input=false
+
+  sg:
+    if: contains(github.event.head_commit.message, 'sg-ec2') || github.event_name == 'push' && contains(join(github.event.commits.*.modified), 'sg-ec2/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - name: Terraform Init
+        working-directory: sg-ec2
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: sg-ec2
+        run: terraform plan -var-file=dev.tfvars -input=false
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        working-directory: sg-ec2
+        run: terraform apply -var-file=dev.tfvars -auto-approve -input=false
