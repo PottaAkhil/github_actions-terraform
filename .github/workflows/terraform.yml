@@ -60,7 +60,7 @@ jobs:
       - name: Terraform Format
         if: ${{ steps.detect.outputs.vpc == 'true' }}
         working-directory: ./vpc
-        run: terraform fmt -check
+        run: terraform fmt -recursive
 
       - name: Terraform Validate
         if: ${{ steps.detect.outputs.vpc == 'true' }}
@@ -147,7 +147,7 @@ jobs:
       - name: Terraform Format
         if: ${{ steps.detect.outputs.sg == 'true' }}
         working-directory: ./sg
-        run: terraform fmt -check
+        run: terraform fmt -recursive
 
       - name: Terraform Validate
         if: ${{ steps.detect.outputs.sg == 'true' }}
@@ -234,7 +234,7 @@ jobs:
       - name: Terraform Format
         if: ${{ steps.detect.outputs.ec2 == 'true' }}
         working-directory: ./ec2
-        run: terraform fmt -check
+        run: terraform fmt -recursive
 
       - name: Terraform Validate
         if: ${{ steps.detect.outputs.ec2 == 'true' }}
