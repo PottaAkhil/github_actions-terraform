@@ -9,8 +9,9 @@ terraform {
   }
   backend "s3" {
     bucket  = "devops-terraform-123"
-    key     = "ec2/ec2.tfstate"
+    key     = "sg/ec2/sg.tfstate"
     region  = "us-east-1"
     encrypt = true
   }
 }
+
