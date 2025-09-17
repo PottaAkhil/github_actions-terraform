@@ -15,7 +15,7 @@ resource "aws_instance" "ec2_instance" {
   instance_type          = var.instance_type
   associate_public_ip_address = "true"
   subnet_id              = data.terraform_remote_state.network.outputs.subnet_ids[0]
-  vpc_security_group_ids = data.terraform_remote_state.sg.sg-id
+  vpc_security_group_ids = [data.terraform_remote_state.sg.sg-id]
   iam_instance_profile = aws_iam_instance_profile.profile.name
   # Root volume
 
@@ -36,4 +36,5 @@ resource "aws_instance" "ec2_instance" {
     Name = "application-ec2"
   }
 }
+
 
