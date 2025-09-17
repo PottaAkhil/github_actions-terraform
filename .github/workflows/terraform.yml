@@ -132,7 +132,7 @@ jobs:
           if [ "${{ steps.action.outputs.action }}" == "apply" ]; then
             terraform apply -input=false -auto-approve -var-file=terraform.tfvars
           elif [ "${{ steps.action.outputs.action }}" == "destroy" ]; then
-            terraform destroy-input=false -auto-approve -var-file=terraform.tfvars
+            terraform destroy -input=false -auto-approve -var-file=terraform.tfvars
           else
             echo "Invalid action"; exit 1
           fi
@@ -227,7 +227,7 @@ jobs:
           if [ "${{ steps.action.outputs.action }}" == "apply" ]; then
             terraform apply -input=false -auto-approve -var-file=terraform.tfvars
           elif [ "${{ steps.action.outputs.action }}" == "destroy" ]; then
-            terraform destroy-input=false -auto-approve -var-file=terraform.tfvars
+            terraform destroy -input=false -auto-approve -var-file=terraform.tfvars
           else
             echo "Invalid action"; exit 1
           fi
@@ -322,7 +322,7 @@ jobs:
           if [ "${{ steps.action.outputs.action }}" == "apply" ]; then
             terraform apply -input=false -auto-approve -var-file=terraform.tfvars
           elif [ "${{ steps.action.outputs.action }}" == "destroy" ]; then
-            terraform destroy-input=false -auto-approve -var-file=terraform.tfvars
+            terraform destroy -input=false -auto-approve -var-file=terraform.tfvars
           else
             echo "Invalid action"; exit 1
           fi
