@@ -24,7 +24,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
-          aws-region: ap-south-1   # change to your AWS region
+          #aws-region: ap-south-1   # change to your AWS region
 
       # Step 3: Setup Terraform
       - name: Setup Terraform
