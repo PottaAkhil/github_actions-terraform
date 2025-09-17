@@ -9,21 +9,22 @@ on:
       - 'sg-ec2/**'
 
 permissions:
-  id-token: write
-  contents: read
+  id-token: write   # Required for OIDC
+  contents: read    # Required for checkout
 
 jobs:
   vpc:
-    if: contains(github.event.head_commit.message, 'vpc') || github.event_name == 'push' && contains(join(github.event.commits.*.modified), 'vpc/')
     runs-on: ubuntu-latest
+    if: contains(join(github.event.commits.*.modified), 'vpc/')
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
-          aws-region: us-east-1
+          aws-region: us-east-1   # change region if needed
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -31,29 +32,30 @@ jobs:
           terraform_version: 1.9.8
 
       - name: Terraform Init
-        working-directory: vpc
+        working-directory: ./vpc
         run: terraform init
 
       - name: Terraform Plan
-        working-directory: vpc
-        run: terraform plan -var-file=dev.tfvars -input=false
+        working-directory: ./vpc
+        run: terraform plan -input=false -var-file=dev.tfvars
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
-        working-directory: vpc
-        run: terraform apply -var-file=dev.tfvars -auto-approve -input=false
+        working-directory: ./vpc
+        run: terraform apply -auto-approve -input=false -var-file=dev.tfvars
 
-  sg:
-    if: contains(github.event.head_commit.message, 'sg-ec2') || github.event_name == 'push' && contains(join(github.event.commits.*.modified), 'sg-ec2/')
+  sg-ec2:
     runs-on: ubuntu-latest
+    if: contains(join(github.event.commits.*.modified), 'sg-ec2/')
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
-          aws-region: us-east-1
+          aws-region: us-east-1   # change region if needed
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -61,14 +63,14 @@ jobs:
           terraform_version: 1.9.8
 
       - name: Terraform Init
-        working-directory: sg-ec2
+        working-directory: ./sg-ec2
         run: terraform init
 
       - name: Terraform Plan
-        working-directory: sg-ec2
-        run: terraform plan -var-file=dev.tfvars -input=false
+        working-directory: ./sg-ec2
+        run: terraform plan -input=false -var-file=dev.tfvars
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
-        working-directory: sg-ec2
-        run: terraform apply -var-file=dev.tfvars -auto-approve -input=false
+        working-directory: ./sg-ec2
+        run: terraform apply -auto-approve -input=false -var-file=dev.tfvars
