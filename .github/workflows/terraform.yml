@@ -5,6 +5,16 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Select Terraform action for manual jobs'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - destroy
 
 permissions:
   id-token: write
@@ -87,16 +97,22 @@ jobs:
         working-directory: ./vpc
         run: terraform init
 
+      - name: Select Action
+        id: action
+        run: |
+          ACTION="${{ github.event.inputs.action }}"
+          echo "Selected action: $ACTION"
+          echo "action=$ACTION" >> $GITHUB_OUTPUT
+
       - name: Terraform Apply or Destroy
         working-directory: ./vpc
         run: |
-          ACTION="${{ secrets.TERRAFORM_ACTION }}"
-          if [ "$ACTION" == "apply" ]; then
+          if [ "${{ steps.action.outputs.action }}" == "apply" ]; then
             terraform apply -input=false -var-file=terraform.tfvars
-          elif [ "$ACTION" == "destroy" ]; then
+          elif [ "${{ steps.action.outputs.action }}" == "destroy" ]; then
             terraform destroy -input=false -var-file=terraform.tfvars
           else
-            echo "Invalid TERRAFORM_ACTION value"; exit 1
+            echo "Invalid action"; exit 1
           fi
 
 ##########################
@@ -175,16 +191,22 @@ jobs:
         working-directory: ./sg
         run: terraform init
 
+      - name: Select Action
+        id: action
+        run: |
+          ACTION="${{ github.event.inputs.action }}"
+          echo "Selected action: $ACTION"
+          echo "action=$ACTION" >> $GITHUB_OUTPUT
+
       - name: Terraform Apply or Destroy
         working-directory: ./sg
         run: |
-          ACTION="${{ secrets.TERRAFORM_ACTION }}"
-          if [ "$ACTION" == "apply" ]; then
+          if [ "${{ steps.action.outputs.action }}" == "apply" ]; then
             terraform apply -input=false -var-file=terraform.tfvars
-          elif [ "$ACTION" == "destroy" ]; then
+          elif [ "${{ steps.action.outputs.action }}" == "destroy" ]; then
             terraform destroy -input=false -var-file=terraform.tfvars
           else
-            echo "Invalid TERRAFORM_ACTION value"; exit 1
+            echo "Invalid action"; exit 1
           fi
 
 ##########################
@@ -263,14 +285,20 @@ jobs:
         working-directory: ./ec2
         run: terraform init
 
+      - name: Select Action
+        id: action
+        run: |
+          ACTION="${{ github.event.inputs.action }}"
+          echo "Selected action: $ACTION"
+          echo "action=$ACTION" >> $GITHUB_OUTPUT
+
       - name: Terraform Apply or Destroy
         working-directory: ./ec2
         run: |
-          ACTION="${{ secrets.TERRAFORM_ACTION }}"
-          if [ "$ACTION" == "apply" ]; then
+          if [ "${{ steps.action.outputs.action }}" == "apply" ]; then
             terraform apply -input=false -var-file=terraform.tfvars
-          elif [ "$ACTION" == "destroy" ]; then
+          elif [ "${{ steps.action.outputs.action }}" == "destroy" ]; then
             terraform destroy -input=false -var-file=terraform.tfvars
           else
-            echo "Invalid TERRAFORM_ACTION value"; exit 1
+            echo "Invalid action"; exit 1
           fi
