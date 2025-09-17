@@ -11,10 +11,6 @@ terraform {
     bucket  = "devops-terraform-123"
     key     = "ec2/ec2.tfstate"
     region  = "us-east-1"
-    profile = "terraform"
+    encrypt = true
   }
-}
-provider "aws" {
-  region  = "us-east-1"
-  profile = "terraform" # Specify the desired AWS profile name here
 }
