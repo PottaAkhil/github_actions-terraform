@@ -16,15 +16,20 @@ permissions:
   id-token: write
   contents: read
 
+##########################
+# VPC Jobs
+##########################
 jobs:
-  vpc:
+  vpc-auto:
     runs-on: ubuntu-latest
+    outputs:
+      vpc-changed: ${{ steps.detect.outputs.vpc }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Detect changes
-        id: changes
+      - name: Detect changes in VPC
+        id: detect
         uses: dorny/paths-filter@v3
         with:
           filters: |
@@ -32,35 +37,63 @@ jobs:
               - 'vpc/**'
 
       - name: Configure AWS credentials
-        if: ${{ steps.changes.outputs.vpc == 'true' }}
+        if: ${{ steps.detect.outputs.vpc == 'true' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
           aws-region: us-east-1
 
       - name: Setup Terraform
-        if: ${{ steps.changes.outputs.vpc == 'true' }}
+        if: ${{ steps.detect.outputs.vpc == 'true' }}
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.8
 
       - name: Terraform Init
-        if: ${{ steps.changes.outputs.vpc == 'true' }}
+        if: ${{ steps.detect.outputs.vpc == 'true' }}
         working-directory: ./vpc
         run: terraform init
 
+      - name: Terraform Format
+        if: ${{ steps.detect.outputs.vpc == 'true' }}
+        working-directory: ./vpc
+        run: terraform fmt -check
+
+      - name: Terraform Validate
+        if: ${{ steps.detect.outputs.vpc == 'true' }}
+        working-directory: ./vpc
+        run: terraform validate
+
       - name: Terraform Plan
-        if: ${{ steps.changes.outputs.vpc == 'true' }}
+        if: ${{ steps.detect.outputs.vpc == 'true' }}
         working-directory: ./vpc
         run: terraform plan -input=false -var-file=terraform.tfvars
 
-      - name: Await Manual Approval
-        if: ${{ steps.changes.outputs.vpc == 'true' }}
-        environment: terraform-approval
-        run: echo "Manual approval granted to proceed with selected action"
+  vpc-manual:
+    runs-on: ubuntu-latest
+    needs: vpc-auto
+    if: ${{ needs.vpc-auto.outputs.vpc-changed == 'true' }}
+    environment: terraform-approval
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - name: Terraform Init
+        working-directory: ./vpc
+        run: terraform init
 
       - name: Terraform Apply or Destroy
-        if: ${{ steps.changes.outputs.vpc == 'true' }}
         working-directory: ./vpc
         run: |
           if [ "${{ github.event.inputs.action }}" == "apply" ]; then
@@ -71,14 +104,19 @@ jobs:
             echo "Invalid action selected"; exit 1
           fi
 
-  sg:
+##########################
+# SG Jobs
+##########################
+  sg-auto:
     runs-on: ubuntu-latest
+    outputs:
+      sg-changed: ${{ steps.detect.outputs.sg }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Detect changes
-        id: changes
+      - name: Detect changes in SG
+        id: detect
         uses: dorny/paths-filter@v3
         with:
           filters: |
@@ -86,35 +124,63 @@ jobs:
               - 'sg/**'
 
       - name: Configure AWS credentials
-        if: ${{ steps.changes.outputs.sg == 'true' }}
+        if: ${{ steps.detect.outputs.sg == 'true' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
           aws-region: us-east-1
 
       - name: Setup Terraform
-        if: ${{ steps.changes.outputs.sg == 'true' }}
+        if: ${{ steps.detect.outputs.sg == 'true' }}
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.8
 
       - name: Terraform Init
-        if: ${{ steps.changes.outputs.sg == 'true' }}
+        if: ${{ steps.detect.outputs.sg == 'true' }}
         working-directory: ./sg
         run: terraform init
 
+      - name: Terraform Format
+        if: ${{ steps.detect.outputs.sg == 'true' }}
+        working-directory: ./sg
+        run: terraform fmt -check
+
+      - name: Terraform Validate
+        if: ${{ steps.detect.outputs.sg == 'true' }}
+        working-directory: ./sg
+        run: terraform validate
+
       - name: Terraform Plan
-        if: ${{ steps.changes.outputs.sg == 'true' }}
+        if: ${{ steps.detect.outputs.sg == 'true' }}
         working-directory: ./sg
         run: terraform plan -input=false -var-file=terraform.tfvars
 
-      - name: Await Manual Approval
-        if: ${{ steps.changes.outputs.sg == 'true' }}
-        environment: terraform-approval
-        run: echo "Manual approval granted to proceed with selected action"
+  sg-manual:
+    runs-on: ubuntu-latest
+    needs: sg-auto
+    if: ${{ needs.sg-auto.outputs.sg-changed == 'true' }}
+    environment: terraform-approval
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - name: Terraform Init
+        working-directory: ./sg
+        run: terraform init
 
       - name: Terraform Apply or Destroy
-        if: ${{ steps.changes.outputs.sg == 'true' }}
         working-directory: ./sg
         run: |
           if [ "${{ github.event.inputs.action }}" == "apply" ]; then
@@ -125,14 +191,19 @@ jobs:
             echo "Invalid action selected"; exit 1
           fi
 
-  ec2:
+##########################
+# EC2 Jobs
+##########################
+  ec2-auto:
     runs-on: ubuntu-latest
+    outputs:
+      ec2-changed: ${{ steps.detect.outputs.ec2 }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Detect changes
-        id: changes
+      - name: Detect changes in EC2
+        id: detect
         uses: dorny/paths-filter@v3
         with:
           filters: |
@@ -140,35 +211,63 @@ jobs:
               - 'ec2/**'
 
       - name: Configure AWS credentials
-        if: ${{ steps.changes.outputs.ec2 == 'true' }}
+        if: ${{ steps.detect.outputs.ec2 == 'true' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
           aws-region: us-east-1
 
       - name: Setup Terraform
-        if: ${{ steps.changes.outputs.ec2 == 'true' }}
+        if: ${{ steps.detect.outputs.ec2 == 'true' }}
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.8
 
       - name: Terraform Init
-        if: ${{ steps.changes.outputs.ec2 == 'true' }}
+        if: ${{ steps.detect.outputs.ec2 == 'true' }}
         working-directory: ./ec2
         run: terraform init
 
+      - name: Terraform Format
+        if: ${{ steps.detect.outputs.ec2 == 'true' }}
+        working-directory: ./ec2
+        run: terraform fmt -check
+
+      - name: Terraform Validate
+        if: ${{ steps.detect.outputs.ec2 == 'true' }}
+        working-directory: ./ec2
+        run: terraform validate
+
       - name: Terraform Plan
-        if: ${{ steps.changes.outputs.ec2 == 'true' }}
+        if: ${{ steps.detect.outputs.ec2 == 'true' }}
         working-directory: ./ec2
         run: terraform plan -input=false -var-file=terraform.tfvars
 
-      - name: Await Manual Approval
-        if: ${{ steps.changes.outputs.ec2 == 'true' }}
-        environment: terraform-approval
-        run: echo "Manual approval granted to proceed with selected action"
+  ec2-manual:
+    runs-on: ubuntu-latest
+    needs: ec2-auto
+    if: ${{ needs.ec2-auto.outputs.ec2-changed == 'true' }}
+    environment: terraform-approval
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - name: Terraform Init
+        working-directory: ./ec2
+        run: terraform init
 
       - name: Terraform Apply or Destroy
-        if: ${{ steps.changes.outputs.ec2 == 'true' }}
         working-directory: ./ec2
         run: |
           if [ "${{ github.event.inputs.action }}" == "apply" ]; then
