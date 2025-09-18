@@ -24,9 +24,6 @@ permissions:
 # VPC Jobs
 ##########################
 jobs:
-
-
-
   vpc-auto:
     runs-on: ubuntu-latest
     outputs:
@@ -49,47 +46,27 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
           aws-region: us-east-1
-
-
-
-
       - name: Setup Terraform
         if: ${{ steps.detect.outputs.vpc == 'true' }}
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.8
-
       - name: Terraform Init
         if: ${{ steps.detect.outputs.vpc == 'true' }}
         working-directory: ./vpc
         run: terraform init
-
       - name: Terraform Format
         if: ${{ steps.detect.outputs.vpc == 'true' }}
         working-directory: ./vpc
         run: terraform fmt -recursive
-
       - name: Terraform Validate
         if: ${{ steps.detect.outputs.vpc == 'true' }}
         working-directory: ./vpc
         run: terraform validate
-
-
-
-
-
-
       - name: Terraform Plan
         if: ${{ steps.detect.outputs.vpc == 'true' }}
         working-directory: ./vpc
         run: terraform plan -input=false -var-file=terraform.tfvars
-
-
-
-
-
-
-
   vpc-manual:
     runs-on: ubuntu-latest
     needs: vpc-auto
@@ -121,11 +98,6 @@ jobs:
           ACTION="${{ github.event.inputs.action || secrets.TERRAFORM_ACTION }}"
           echo "Selected action: $ACTION"
           echo "action=$ACTION" >> $GITHUB_OUTPUT
-
-
-
-
-
       - name: Terraform Apply or Destroy
         working-directory: ./vpc
         run: |
@@ -231,7 +203,6 @@ jobs:
           else
             echo "Invalid action"; exit 1
           fi
-
 ##########################
 # EC2 Jobs
 ##########################
@@ -325,8 +296,9 @@ jobs:
             terraform destroy -input=false -auto-approve -var-file=terraform.tfvars
           else
             echo "Invalid action"; exit 1
+          fi
 
-      # 🔹 Commit PEM file after apply
+      # Commit PEM file after apply
       - name: Commit PEM file
         if: ${{ steps.action.outputs.action == 'apply' }}
         working-directory: ./ec2
@@ -336,4 +308,3 @@ jobs:
           git add keys/*.pem
           git commit -m "Add generated PEM file" || echo "No changes to commit"
           git push origin main
-
