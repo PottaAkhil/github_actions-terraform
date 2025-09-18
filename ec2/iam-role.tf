@@ -1,11 +1,11 @@
 
 resource "aws_iam_instance_profile" "profile" {
-  name = "sessionmanager-ec2"
+  name = "session-manager"
   role = aws_iam_role.session-role.name
 }
 
 resource "aws_iam_role" "session-role" {
-  name               = "test_role"
+  name               = "ec2-role"
   assume_role_policy = <<-JSON
     {
       "Version": "2012-10-17",
@@ -27,3 +27,4 @@ resource "aws_iam_role_policy_attachment" "AmazonSSMManagedInstanceCore" {
   role       = aws_iam_role.session-role.name
 
 }
+
