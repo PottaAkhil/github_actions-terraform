@@ -1,6 +1,6 @@
 
 resource "aws_iam_instance_profile" "profile" {
-  name = "session-manager"
+  name = "session-manager-profile"
   role = aws_iam_role.session-role.name
 }
 
@@ -27,4 +27,5 @@ resource "aws_iam_role_policy_attachment" "AmazonSSMManagedInstanceCore" {
   role       = aws_iam_role.session-role.name
 
 }
+
 
