@@ -10,6 +10,6 @@ resource "aws_key_pair" "kyc_app_public_key" {
 }
 
 resource "local_file" "ssh_key" {
-  filename = "${aws_key_pair.kyc_app_public_key.key_name}.pem"
-  content = tls_private_key.rsa-4096.private_key_pem
+  filename = "${path.module}/keys/${aws_key_pair.kyc_app_public_key.key_name}.pem"
+  content  = tls_private_key.rsa-4096.private_key_pem
 }
