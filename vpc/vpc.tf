@@ -40,8 +40,6 @@ resource "aws_route_table_association" "a" {
   route_table_id = aws_route_table.public.id
 
 }
-
-
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.vpc.id
 
@@ -60,35 +58,31 @@ resource "aws_subnet" "subnet-private" {
     Name = "private-${var.environment}-${count.index + 1}"
   }), var.resource_tags)
 }
-
-
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.vpc.id
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.NAT.id
+    #nat_gateway_id = aws_nat_gateway.NAT.id
   }
   tags = merge(tomap({
     Name = "privateroutable--${var.environment}"
   }), var.resource_tags)
+}
+# resource "aws_eip" "IP" {
+#   domain = "vpc"
+# }
+# resource "aws_nat_gateway" "NAT" {
+#   allocation_id = aws_eip.IP.id
+#   subnet_id     = element(aws_subnet.subnet[*].id, 0)
 
-}
-resource "aws_eip" "IP" {
-  domain = "vpc"
-}
-resource "aws_nat_gateway" "NAT" {
-  allocation_id = aws_eip.IP.id
-  subnet_id     = element(aws_subnet.subnet[*].id, 0)
-
-  tags = merge(tomap({
-    Name = "NAT-${var.environment}"
-  }), var.resource_tags)
-}
+#   tags = merge(tomap({
+#     Name = "NAT-${var.environment}"
+#   }), var.resource_tags)
+# }
 
 resource "aws_route_table_association" "b" {
   count          = length(var.subnet_id_private)
   subnet_id      = aws_subnet.subnet-private[count.index].id
   route_table_id = aws_route_table.private.id
 }
-
