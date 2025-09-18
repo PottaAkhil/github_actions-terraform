@@ -1,0 +1,34 @@
+Using VPC ID: vpc-05bfceee943400160
+
+========== Security Groups ==========
+---------------------------------------------
+|          DescribeSecurityGroups           |
++-----------------------+-------------------+
+|  sg-07aa0f85869763ea8 |  launch-wizard-4  |
+|  sg-0b54dc93cd4080890 |  default          |
++-----------------------+-------------------+
+
+========== EC2 Instances ==========
+
+========== Network Interfaces ==========
+--------------------------------------------------
+|            DescribeNetworkInterfaces           |
++------------------------+---------+-------------+
+|  eni-0174e3539d0a5a4a1 |  in-use |  10.0.0.24  |
+|  eni-0acb5ab3d4cfc225a |  in-use |  10.0.0.25  |
+|  eni-061febc14f5461cd6 |  in-use |  10.0.0.26  |
++------------------------+---------+-------------+
+
+========== Classic Load Balancers ==========
+
+========== Application/Network Load Balancers ==========
+
+========== RDS Instances ==========
+
+========== ElastiCache Redis Clusters ==========
+
+========== Lambda Functions with VPC ==========
+
+========== API Gateway v2 (HTTP/WebSocket) ==========
+
+Output written to: output.txt
