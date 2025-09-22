@@ -10,7 +10,7 @@ aws_region = "us-east-1"
 
 environment = "dev"
 resource_tags = {
-  application = "pf2"
+  application = "sample-app"
   
 
 }
