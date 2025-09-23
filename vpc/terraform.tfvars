@@ -9,8 +9,9 @@ subnet_id_private = ["10.0.1.0/25"]
 aws_region = "us-east-1"
 
 environment = "dev"
+
 resource_tags = {
-  application = "sample-app"
+  application = "featherjet"
   
 
 }
